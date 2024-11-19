@@ -28,6 +28,7 @@
 #include "entity.h"
 #include "player.h"
 #include "ent_obj.h"
+#include "floor.h"
 
 extern int __DEBUG;
 
@@ -104,10 +105,15 @@ int main(int argc,char *argv[])
     GFC_Vector3D playerSpawn = gfc_vector3d(0, 0, 0);
     Entity* player = player_new("player", dino, playerSpawn);
     
+    // Floor
+    GFC_Vector3D spawnFloor = gfc_vector3d(0, 0, -5);
+    //GFC_Primitive shape = gfc_new_primitive(3, spawnFloor.x, spawnFloor.y, spawnFloor.z, 10, 10, 1, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
+    //Entity* floor = floor_new("floor");
 
     // Object
     GFC_Vector3D spawn = gfc_vector3d(0, -20, 0);
-    Entity* cylind = obj_new("cylinder", cylinder, spawn);
+    Entity* floor = floor_new("cylinder", cylinder, spawn);
+    //Entity* cylind = obj_new("cylinder", cylinder, spawn);
 
     float offset = 45.0f;
     entity_set_radius(player, &offset);
@@ -117,6 +123,7 @@ int main(int argc,char *argv[])
     SDL_CaptureMouse(SDL_TRUE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
+    // Camera Setup
     GFC_Vector3D offsetPos = gfc_vector3d(0.0f, offset, 20.0f);
     GFC_Vector3D offsetLook = gfc_vector3d(0.0f, 0.0f, 10.0f);
     gf3d_camera_set_offset_position(player->position, offsetPos);
@@ -131,7 +138,7 @@ int main(int argc,char *argv[])
     //gf3d_camera_enable_free_look(1);
     gf3d_camera_enable_player_look(1);
     //gf3d_camera_set_auto_pan(1);
-    entity_set_camera(player, gf3d_camera_get_mode());
+    entity_set_camera(player, gf3d_camera_get_mode(), gf3d_get_camera());
     //windows
 
     // Music
@@ -147,8 +154,8 @@ int main(int argc,char *argv[])
         //camera updates
         GFC_Vector2D mousePos = gf2d_mouse_get_movement();
 
-        entity_system_think();
         entity_system_collision();
+        entity_system_think();
         entity_system_update();
 
         gf3d_camera_move_mouse(mousePos, player->position, offset);
@@ -192,7 +199,7 @@ int main(int argc,char *argv[])
 
         gf3d_vgraphics_render_end();
 
-        entity_set_camera(player,gf3d_camera_get_mode());
+        entity_set_camera(player,gf3d_camera_get_mode(), gf3d_get_camera());
         //gf3d_camera_third_person(mousePos, player->position);
         //gf3d_camera_update_view();
 

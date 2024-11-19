@@ -32,6 +32,11 @@ typedef struct
 void gf3d_camera_update_view();
 
 /**
+ * @brief Get the camera object
+ */
+Camera* gf3d_get_camera();
+
+/**
  * @brief get the current camera view
  * @param view output, the matrix provided will be populated with the current camera information
  */

@@ -149,16 +149,22 @@ void entity_system_draw()
 	}
 }
 
-void entity_set_camera(Entity* self, int camera)
+void entity_set_camera(Entity* self, int cameraMode, Camera* camera)
 {
 	if (!self) return;
-	if (self->cameraMode)self->cameraMode = camera;
+	if (self->cameraMode)self->cameraMode = cameraMode;
+	if (self->camera)self->camera = camera;
 }
 
 void entity_get_camera(Entity* self)
 {
 	if (!self) return;
 	if (self->cameraMode)return self->cameraMode;
+}
+
+void entity_update_camera(Entity* self, Camera* camera) {
+	if (!self) return;
+	if (self->camera)self->camera = camera;
 }
 
 void entity_set_radius(Entity* self, float *radius) 
@@ -170,7 +176,7 @@ void entity_set_radius(Entity* self, float *radius)
 void entity_system_collision() {
 	int i;
 	int j;
-	GFC_Vector3D collision = { 0,0,0 };
+	GFC_Vector3D collision;
 	for (i = 0; i < _entity_manager.entity_max; i++)
 	{
 		if (!_entity_manager.entity_list[i]._inuse)continue;
@@ -180,18 +186,20 @@ void entity_system_collision() {
 			if (&_entity_manager.entity_list[i] == &_entity_manager.entity_list[j]) continue;
 
 			// If both entities are colliding in the game, have both entities run their ent_colliders
-			if (gfc_double_box_collision(_entity_manager.entity_list[i].collisionX.s.b, _entity_manager.entity_list[j].collisionX.s.b,collision)){
-				ent_collider(&_entity_manager.entity_list[i], &_entity_manager.entity_list[j], collision);
-				ent_collider(&_entity_manager.entity_list[j], &_entity_manager.entity_list[i], collision);
+			if (gfc_double_box_collision(_entity_manager.entity_list[i].collisionX.s.b, _entity_manager.entity_list[j].collisionX.s.b,&collision)){
+				// Entity 1
+				ent_collider(&_entity_manager.entity_list[i], &_entity_manager.entity_list[j], &collision);
+				// Entity 2
+				ent_collider(&_entity_manager.entity_list[j], &_entity_manager.entity_list[i], &collision);
 			}
 
 		}
 	}
 }
 
-void ent_collider(Entity* self, Entity* other, GFC_Vector3D collision) {
+void ent_collider(Entity* self, Entity* other, GFC_Vector3D* collision) {
 	if (!self) return;
-	if (self->touch) self->touch(self, other, collision);
+	if (self->touch) self->touch(self, other, &collision);
 }
 
 void entity_system_collision_visible(int toggle) {

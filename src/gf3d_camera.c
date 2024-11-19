@@ -10,6 +10,10 @@
 
 static Camera gf3d_camera = {0};
 
+Camera* gf3d_get_camera() {
+    return &gf3d_camera;
+}
+
 void gf3d_camera_set_move_step(float step)
 {
     gf3d_camera.moveStep = step;

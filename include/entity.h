@@ -5,6 +5,7 @@
 #include "gf3d_model.h"
 #include "gfc_text.h"
 #include "gfc_vector.h"
+#include "gf3d_camera.h"
 
 /**
 * @purpose Make and manage entity
@@ -22,6 +23,7 @@ typedef struct Entity_S
 	GFC_Vector3D		direction;	/**Where am I faceing in x and y*/
 	Model* model;					/**My graphics*/
 	int*				cameraMode;	/**What mode is the camera in?*/
+	Camera*				camera;		/**My camera object*/
 	float*				radius;		/**Offset for my camera*/
 	GFC_Primitive		collisionX;/**What is the shape of my body collision?*/
 	//GFC_Box				collision;	/**What is the shape of my body collision?*/
@@ -33,7 +35,7 @@ typedef struct Entity_S
 	void (*free)(struct Entity_S* self);		/**clean up any custom data*/
 	void (*touch)(struct Entity_S* self, 
 		struct Entity_S* other, 
-		GFC_Vector3D collision);			/**Function to call when checking for collisions and actions*/
+		GFC_Vector3D* collision);			/**Function to call when checking for collisions and actions*/
 	void* data;									/**For ad hoc addition data for the entity*/
 }Entity;
 
@@ -88,9 +90,16 @@ void entity_draw(Entity *self);
 
 /*
 * @brief Use to set camera's current mode
-* @param camera's current mode
+* @param cameraMode - Camera's current mode
+* @param camera - The camera object
 */
-void entity_set_camera(Entity* self, int camera);
+void entity_set_camera(Entity* self, int cameraMode, Camera* camera);
+
+/*
+* @brief Use to update the camera for the player
+* @param camera - Camera object
+*/
+void entity_update_camera(Entity* self, Camera* camera);
 
 /*
 * @brief Use to get camera mode
@@ -111,7 +120,7 @@ void entity_set_radius(Entity* self, float *radius);
 * @param collision - Point of collision
 * @return - 1 if collided, else 0 if not collided.
 */
-void ent_collider(Entity* self, Entity* other, GFC_Vector3D collision);
+void ent_collider(Entity* self, Entity* other, GFC_Vector3D* collision);
 
 /*
 * @brief if there is a collision in the game, run collision physics of those entities.

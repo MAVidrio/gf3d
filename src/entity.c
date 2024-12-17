@@ -124,6 +124,10 @@ void entity_draw(Entity* self)
 		if (self->draw(self) == -1)return;
 	}
 
+	if (self->armature) {
+		
+	}
+
 	gfc_matrix4_from_vectors(
 		matrix,
 		self->position,
@@ -176,7 +180,7 @@ void entity_set_radius(Entity* self, float *radius)
 void entity_system_collision() {
 	int i;
 	int j;
-	GFC_Vector3D collision;
+	GFC_Vector3D collision = gfc_vector3d(0,0,0);
 	for (i = 0; i < _entity_manager.entity_max; i++)
 	{
 		if (!_entity_manager.entity_list[i]._inuse)continue;
@@ -186,20 +190,20 @@ void entity_system_collision() {
 			if (&_entity_manager.entity_list[i] == &_entity_manager.entity_list[j]) continue;
 
 			// If both entities are colliding in the game, have both entities run their ent_colliders
-			if (gfc_double_box_collision(_entity_manager.entity_list[i].collisionX.s.b, _entity_manager.entity_list[j].collisionX.s.b,&collision)){
+			if (gfc_double_box_collision(_entity_manager.entity_list[i].collisionX.s.b, _entity_manager.entity_list[j].collisionX.s.b, &collision)){
 				// Entity 1
-				ent_collider(&_entity_manager.entity_list[i], &_entity_manager.entity_list[j], &collision);
+				ent_collider(&_entity_manager.entity_list[i], &_entity_manager.entity_list[j], gfc_get_double_box_collision(_entity_manager.entity_list[i].collisionX.s.b, _entity_manager.entity_list[j].collisionX.s.b));
 				// Entity 2
-				ent_collider(&_entity_manager.entity_list[j], &_entity_manager.entity_list[i], &collision);
+				ent_collider(&_entity_manager.entity_list[j], &_entity_manager.entity_list[i], gfc_get_double_box_collision(_entity_manager.entity_list[j].collisionX.s.b, _entity_manager.entity_list[i].collisionX.s.b));
 			}
 
 		}
 	}
 }
 
-void ent_collider(Entity* self, Entity* other, GFC_Vector3D* collision) {
+void ent_collider(Entity* self, Entity* other, GFC_Vector3D collision) {
 	if (!self) return;
-	if (self->touch) self->touch(self, other, &collision);
+	if (self->touch) self->touch(self, other, collision);
 }
 
 void entity_system_collision_visible(int toggle) {
@@ -208,7 +212,7 @@ void entity_system_collision_visible(int toggle) {
 		for (i = 0; i < _entity_manager.entity_max; i++)
 		{
 			if (!_entity_manager.entity_list[i]._inuse)continue;		//Skip any inactive entites
-			gfc_render_box(_entity_manager.entity_list[i].collisionX.s.b);
+			gfc_render_box(_entity_manager.entity_list[i].collisionX.s.b,GFC_COLOR_WHITE);
 		}
 	}
 }

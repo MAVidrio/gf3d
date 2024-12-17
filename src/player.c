@@ -5,11 +5,16 @@
 
 #include "player.h"
 
+
+
+static float elapsedTime = 0.0f;
+extern float deltaTime;
+
 void player_think(Entity *self);
 void player_update(Entity *self);
 int player_draw(Entity* self);
 void player_free(Entity *self);
-void player_collider(Entity* self, Entity* other, GFC_Vector3D* collision);
+void player_collider(Entity* self, Entity* other, GFC_Vector3D collision);
 
 // Flag for collision
 Bool collide = false;
@@ -52,7 +57,7 @@ enum playerState {
 int state = idle;
 int ground = onGround;
 
-Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
+Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition, Skeleton3D* armature)
 {
 	Entity *self;
 
@@ -78,17 +83,24 @@ Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
 
 	float xScale = 6.0f;
 	float yScale = 6.0f;
-	float zScale = 11.0f;
+	float zScale = 12.0f;
 
-	self->collisionX = gfc_new_primitive(3, self->position.x-(xScale/2.0f), self->position.y-(yScale/2.0f), self->position.z-(zScale/2)-1, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
-
+	//self->collisionX = gfc_new_primitive(3, self->position.x-(xScale/2.0f), self->position.y-(yScale/2.0f), self->position.z-(zScale/2)-1, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
+	self->collisionX = gfc_new_primitive(3, self->position.x - (xScale / 2.0f), self->position.y - (yScale / 2.0f), self->position.z - (zScale / 2), xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
 	self->think = player_think;
 	self->update = player_update;
 	self->draw = player_draw;
 	self->free = player_free;
 	self->touch = player_collider;
 
+	self->armature = armature;
+	if (!self->armature) {
+		slog("Error: Player armature is NULL.");
+		return NULL;
+	}
+
 	slog("Player succefully spawned.");
+	//slog("%f/%f/%f", self->collisionX.s.b.xC, self->collisionX.s.b.yC, self->collisionX.s.b.zC);
 	return self;
 }
 
@@ -102,7 +114,7 @@ int get_Camera_Mode(Entity *self)
 	return self->cameraMode;
 }
 
-void player_collider(Entity* self, Entity* other, GFC_Vector3D* collision) {
+void player_collider(Entity* self, Entity* other, GFC_Vector3D collision) {
 	if (!self)return;
 
 	GFC_Vector3D dir = self->direction;
@@ -116,7 +128,7 @@ void player_collider(Entity* self, Entity* other, GFC_Vector3D* collision) {
 		//slog("Touching floor");
 		collide = true;
 		typeCollision[4] = 1;
-		slog("Collision: %f/%f/%f", collision->x, collision->y, collision->z);
+		//slog("Collision: %f/%f/%f", collision.x, collision.y, collision.z);
 		//entCollision[4] = *other;
 	}
 }
@@ -128,6 +140,10 @@ void player_to_object(Entity* self, Entity* object) {
 void player_think(Entity* self) {
 
 	if (!self)return;
+
+	//static float time = 0;
+	//Uint32 frame = (Uint32)(time * ANIMATION_FPS) % TOTAL_FRAMES;
+	//SkeletonUBO ubo = gf3d_armature_get_ubo(self->armature, frame);
 
 	float fallMultiplier = 0.5f;
 	float jumpMultiplier = 15.0f;
@@ -187,13 +203,49 @@ void player_think(Entity* self) {
 	// Z limit
 	if (self->velocity.z < -5.0f) self->velocity.z += 0.3f;
 
+	// Update shader uniforms with UBO
+	//time += game_frame_delay();
+
 	// DEBUG: check velocity 
-	if (gfc_input_command_pressed("cancel")) slog("Velocity: %f/%f/%f", self->velocity.x, self->velocity.y, self->velocity.z);
+	//if (gfc_input_command_pressed("cancel")) slog("Velocity: %f/%f/%f", self->velocity.x, self->velocity.y, self->velocity.z);
 }
 
 void player_update(Entity *self)
 {
 	if (!self)return;
+
+
+
+	/*// Update elasped time
+	elapsedTime += deltaTime;
+
+	// Animation
+	float animationSpeed = 1.0f;
+	Uint32 totalFrames = self->armature->maxFrames;
+	Uint32 frame = (Uint32)(elapsedTime * animationSpeed) % totalFrames;
+
+	if (deltaTime <= 0) {
+		slog("Error: deltaTime is zero or negative.");
+		return;
+	}
+	if (totalFrames == 0) {
+		slog("Error: Total animation frames is zero.");
+		return;
+	}
+	
+	slog("deltaTime: %f, animationSpeed: %f, totalFrames: %d", deltaTime, animationSpeed, totalFrames);*/
+
+
+	// Get pose matrices for the current frame
+	//GFC_Matrix4* boneMatrices = gf3d_armature_get_pose_matrices(self->armature, frame, NULL);
+
+	// Pass matrices to shaders (depends on your rendering pipeline)
+	//if (boneMatrices) {
+		// Example: Bind matrices to shader's uniform buffer
+		// update_shader_uniforms(boneMatrices, totalFrames);
+	//}
+
+	//SkeletonUBO ubo = gf3d_armature_get_ubo(self->armature, frame);
 
 	gfc_vector3d_add(self->position, self->position, self->velocity);
 	gfc_vector3d_add(self->collisionX.s.b, self->collisionX.s.b, self->velocity);

@@ -57,6 +57,7 @@ typedef struct
     Texture            *texture;
     Texture            *normalMap;
     GFC_Box             bounds;         //copied from the mesh
+    
     GFC_Matrix4         matrix;         //a delta applied right before rendering.  an adjustment loaded from file
 }Model;
 

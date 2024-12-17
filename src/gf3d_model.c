@@ -600,7 +600,7 @@ void gf3d_model_draw(
         frame);
 }
 
-
+// For .obj only
 void gf3d_model_draw_index(
     Model *model,
     Uint32 index,

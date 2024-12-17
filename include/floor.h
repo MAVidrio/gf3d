@@ -3,6 +3,6 @@
 
 #include "entity.h"
 
-Entity* floor_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition);
+Entity* floor_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition, GFC_Vector3D size);
 
 #endif

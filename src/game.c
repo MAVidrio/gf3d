@@ -16,6 +16,7 @@
 #include "gf2d_draw.h"
 #include "gf2d_actor.h"
 #include "gf2d_mouse.h"
+#include "gf2d_menu.h"
 
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
@@ -24,17 +25,22 @@
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
 #include "gf3d_draw.h"
+#include "gf3d_obj_load.h"
+#include "gf3d_gltf_parse.h"
+#include "skeleton.h"
 
 #include "entity.h"
 #include "player.h"
 #include "ent_obj.h"
 #include "floor.h"
+#include "gf3d_particle.h"
 
 extern int __DEBUG;
 
 static int _done = 0;
 static Uint32 frame_delay = 33;
 static float fps = 0;
+float deltaTime = 0.0f;
 
 void parse_arguments(int argc,char *argv[]);
 void game_frame_delay();
@@ -64,10 +70,16 @@ void draw_origin()
 int main(int argc,char *argv[])
 {
     //local variables
+    ObjData *square;
     Model *sky,*dino, *cylinder;
+    GLTF  *playerData;
     GFC_Matrix4 skyMat,dinoMat;
     Mix_Music *music;
     int menu = 1;
+    int mainMenu = 0;
+    GFC_Vector2D prevMousePoint;            // Used for camera movement and pausing it when menu is open
+    int *menuType = 0;                      // Used for determining what menu to open
+    Skeleton3D* playerArma;                 // Player armature
     //initializtion    
     parse_arguments(argc,argv);
     init_logger("gf3d.log",0);
@@ -77,7 +89,11 @@ int main(int argc,char *argv[])
     gfc_config_def_init();
     gfc_action_init(1024);
     gfc_audio_init(16,8,0,1,1,0);
-    entity_system_init(32);                 // Entity limit 32
+    entity_system_init(1024);                 // Entity limit 1024
+    particle_manager_init(10000);
+    gf3d_armature_system_init(1024);          // Armature limit 1024
+
+
     //gf3d init
     gf3d_vgraphics_init("config/setup.cfg");
     gf3d_materials_init();
@@ -95,25 +111,39 @@ int main(int argc,char *argv[])
     //dog = gf3d_model_load_full();
     sky = gf3d_model_load("models/sky.model");
     gfc_matrix4_identity(skyMat);
-    dino = gf3d_model_load("models/dino.model");
+    //dino = gf3d_model_load("models/dino.model");
+
+    /* Use obj to get model.
+    * Use gtfl to move the model.
+    */
+    playerData = gf3d_gltf_load("models/enemies/Bat/Bat.gltf");
+    playerArma = gf3d_armature_parse(playerData);
+    //dino = gf3d_model_load("models/Bat.model");
+    dino = gf3d_gltf_parse_model("models/enemies/Bat/Bat.gltf");
     gfc_matrix4_identity(dinoMat);
     cylinder = gf3d_model_load("models/primitives/icylinder.model");
     gfc_matrix4_identity(cylinder);
     music = gfc_sound_load_music("music/Persona 3 Reload - It's Going Down Now (Extended Version).mp3");
+    square = gf3d_obj_load_from_file("models/primitives/MyCube/TestCube.obj");
 
     // Player
     GFC_Vector3D playerSpawn = gfc_vector3d(0, 0, 0);
-    Entity* player = player_new("player", dino, playerSpawn);
+    Entity* player = player_new("player", dino, playerSpawn, playerArma);
     
     // Floor
-    GFC_Vector3D spawnFloor = gfc_vector3d(0, 0, -5);
+    GFC_Vector3D spawnFloor = gfc_vector3d(-100, -200, -20);
+    GFC_Vector3D sizeFloor = gfc_vector3d(1000, 1000, 10);
+    GFC_Vector3D spawnFloor2 = gfc_vector3d(0, 20, 10);
+    GFC_Vector3D sizeFloor2 = gfc_vector3d(10, 10, 10);
+    Entity* floor = floor_new("cylinder", cylinder, spawnFloor, sizeFloor);
+    Entity* floor2 = floor_new("cylinder", cylinder, spawnFloor2, sizeFloor2);
     //GFC_Primitive shape = gfc_new_primitive(3, spawnFloor.x, spawnFloor.y, spawnFloor.z, 10, 10, 1, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
     //Entity* floor = floor_new("floor");
 
     // Object
-    GFC_Vector3D spawn = gfc_vector3d(0, -20, 0);
-    Entity* floor = floor_new("cylinder", cylinder, spawn);
-    //Entity* cylind = obj_new("cylinder", cylinder, spawn);
+    GFC_Vector3D spawn = gfc_vector3d(0, 0, 0);
+   
+    Entity* cylind = obj_new("cylinder", square, spawn);
 
     float offset = 45.0f;
     entity_set_radius(player, &offset);
@@ -153,12 +183,16 @@ int main(int argc,char *argv[])
 
         //camera updates
         GFC_Vector2D mousePos = gf2d_mouse_get_movement();
+        if (menu == 1) { 
+            prevMousePoint = gf2d_mouse_get_movement(); 
 
-        entity_system_collision();
-        entity_system_think();
-        entity_system_update();
+            entity_system_collision();
+            entity_system_think();
+            entity_system_update();
+        }
+        else { prevMousePoint = gfc_vector2d(0, 0); }
 
-        gf3d_camera_move_mouse(mousePos, player->position, offset);
+        gf3d_camera_move_mouse(prevMousePoint, player->position, offset);
         gf3d_camera_update_view();
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
@@ -170,8 +204,21 @@ int main(int argc,char *argv[])
 
                 //gf3d_model_draw();
                 
+                particle_spray_follow_point(
+                    10,
+                    30,
+                    GFC_COLOR_BLUE,
+                    GFC_COLOR_GREEN,
+                    gfc_vector3d(player->position.x + gfc_crandom(), player->position.y + gfc_crandom(), player->position.z + gfc_crandom()),
+                    &player->position,
+                    0.2,
+                    0.1,
+                    0.5,
+                    gfc_vector3d(0,0,0));
                 
                 entity_system_draw();
+                particle_manager_draw();
+                gf3d_draw_plane_3d(gfc_plane3d(0,0,0,0),gfc_vector3d(0,0,0), gfc_vector3d(0, 0, 0), gfc_vector3d(1, 1, 1), GFC_COLOR_WHITE);
                 entity_system_collision_visible(1);
                 
                 
@@ -189,12 +236,20 @@ int main(int argc,char *argv[])
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
 
                 if (menu == -1) {
-                    gf2d_draw_menu();
-                   // gf2d_font_draw_text_wrap_tag("This text is in a box!", FT_Large, GFC_COLOR_WHITE, gfc_rect(100, 100, 200, 200));
-                    //gf2d_font_draw_line_tag("Menu Opened", FT_Large, GFC_COLOR_RED, gfc_vector2d(100, 100));
-                    //gf2d_font_draw_line_tag("This is a line", FT_Large, GFC_COLOR_WHITE, gfc_vector2d(100, 150));
-                    //gf2d_draw_shape(gfc_shape_rect(0, 0, 200,200), GFC_COLOR_BLUE, gfc_vector2d(0, 0));
-                    //gf2d_draw_rect_filled(gfc_rect(0,0,200,200), GFC_COLOR_BLUE);
+                    int menuchange = gf2d_draw_menu(menuType, gf2d_mouse_get_position(), gf2d_mouse_button_pressed(0));
+
+                    // Return to menu
+                    if (menuchange == 0) { menuType = 0; }
+                    // Options menu
+                    if (menuchange == 1) { menuType = 1; }
+                    // Bestiary 
+                    if (menuchange == 2) { menuType = 2; }
+                    // Exit menu from "resume"
+                    if (menuchange == -1) { menuType = 0; menu = 1; }
+                    // Exit condition from "exit"
+                    else if (menuchange == -2) { _done = 1; }
+
+                    gf2d_mouse_draw();
                 }
 
         gf3d_vgraphics_render_end();
@@ -211,8 +266,9 @@ int main(int argc,char *argv[])
     }    
     
     entity_system_close();
+    
     gfc_music_free(music);
-    vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
+    vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());  
     //cleanup
     slog("gf3d program end");
     exit(0);
@@ -242,6 +298,10 @@ void game_frame_delay()
     slog_sync();// make sure logs get written when we have time to write it
     now = SDL_GetTicks();
     diff = (now - then);
+
+    // Calculate delta time by converting ticks into seconds
+    deltaTime = diff / 1000.0f;
+
     if (diff < frame_delay)
     {
         SDL_Delay(frame_delay - diff);

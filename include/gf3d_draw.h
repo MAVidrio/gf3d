@@ -23,6 +23,15 @@ void gf3d_draw_init();
 void gf3d_draw_edge_3d(GFC_Edge3D edge,GFC_Vector3D position,GFC_Vector3D rotation,GFC_Vector3D scale,float radius,GFC_Color color);
 
 /**
+ * @brief draw a plane with the given orientation
+ * @param plane the plane to draw.  (x,y,and z are offsets from center)
+ * @param position where to move the plane (final location is position + edge.a.xyz)
+ * @param rotation how to rotation the plane about point a
+ * @param scale how much to scale the scale.  The size of the plane is also a factor
+ * @param color the color to draw with
+ */
+void gf3d_draw_plane_3d(GFC_Plane3D plane, GFC_Vector3D position, GFC_Vector3D rotation, GFC_Vector3D scale, GFC_Color color);
+/**
  * @brief draw a solid cube with the given orientation, centered on position
  * @param cube the cube dimensions to draw.  (x,y,and z are offsets from center)
  * @param position where to move the cube center 

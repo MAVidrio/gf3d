@@ -6,6 +6,8 @@
 #include "gfc_text.h"
 #include "gfc_vector.h"
 #include "gf3d_camera.h"
+#include "gf3d_obj_load.h"
+#include "skeleton.h"
 
 /**
 * @purpose Make and manage entity
@@ -25,8 +27,8 @@ typedef struct Entity_S
 	int*				cameraMode;	/**What mode is the camera in?*/
 	Camera*				camera;		/**My camera object*/
 	float*				radius;		/**Offset for my camera*/
-	GFC_Primitive		collisionX;/**What is the shape of my body collision?*/
-	//GFC_Box				collision;	/**What is the shape of my body collision?*/
+	GFC_Primitive		collisionX;	/**What is the shape of my body collision?*/
+	Skeleton3D*			armature;	/**My skeleton for aniimations*/
 
 	// behavior
 	void (*think)(struct Entity_S* self);		/**Function to call to make decisions*/
@@ -35,7 +37,7 @@ typedef struct Entity_S
 	void (*free)(struct Entity_S* self);		/**clean up any custom data*/
 	void (*touch)(struct Entity_S* self, 
 		struct Entity_S* other, 
-		GFC_Vector3D* collision);			/**Function to call when checking for collisions and actions*/
+		GFC_Vector3D collision);			/**Function to call when checking for collisions and actions*/
 	void* data;									/**For ad hoc addition data for the entity*/
 }Entity;
 
@@ -120,7 +122,7 @@ void entity_set_radius(Entity* self, float *radius);
 * @param collision - Point of collision
 * @return - 1 if collided, else 0 if not collided.
 */
-void ent_collider(Entity* self, Entity* other, GFC_Vector3D* collision);
+void ent_collider(Entity* self, Entity* other, GFC_Vector3D collision);
 
 /*
 * @brief if there is a collision in the game, run collision physics of those entities.

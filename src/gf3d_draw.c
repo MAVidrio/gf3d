@@ -11,6 +11,7 @@ typedef struct
     Model *sphere;
     Model *isphere;
     Model *icylinder;
+    Model *plane;
 }GF3D_DrawManager;
 
 static GF3D_DrawManager gf3d_draw_manager = {0};
@@ -22,6 +23,7 @@ void gf3d_draw_close()
     gf3d_model_free(gf3d_draw_manager.sphere);
     gf3d_model_free(gf3d_draw_manager.isphere);
     gf3d_model_free(gf3d_draw_manager.icylinder);
+    gf3d_model_free(gf3d_draw_manager.plane);
 }
 
 void gf3d_draw_init()
@@ -31,6 +33,7 @@ void gf3d_draw_init()
     gf3d_draw_manager.sphere = gf3d_model_load_full("models/primitives/sphere.obj","models/primitives/flatwhite.png");
     gf3d_draw_manager.isphere = gf3d_model_load_full("models/primitives/isphere.obj","models/primitives/flatwhite.png");
     gf3d_draw_manager.icylinder= gf3d_model_load("models/primitives/icylinder.model");
+    gf3d_draw_manager.plane = gf3d_model_load_full("models/primitives/MyPlane/plane.obj", "models/primitives/flatwhite.png");
     
     atexit(gf3d_draw_close);
 }
@@ -65,6 +68,18 @@ void gf3d_draw_edge_3d(GFC_Edge3D edge,GFC_Vector3D position,GFC_Vector3D rotati
         gfc_vector3d(rotation.x + angles.x,rotation.y + angles.y,rotation.z + angles.z),
         scale);
     gf3d_model_draw(gf3d_draw_manager.icylinder,modelMat,color,0);
+}
+
+void gf3d_draw_plane_3d(GFC_Plane3D plane,GFC_Vector3D position,GFC_Vector3D rotation,GFC_Vector3D scale,GFC_Color color) {
+    GFC_Matrix4 modelMat;
+
+    gfc_matrix4_from_vectors(
+        modelMat,
+        gfc_vector3d(position.x + plane.x, position.y + plane.y, position.z + plane.z),
+        rotation,
+        gfc_vector3d(scale.x, scale.y, scale.z * plane.d));
+
+    gf3d_model_draw(gf3d_draw_manager.plane, modelMat, color, 0);
 }
 
 void gf3d_draw_cube_solid(GFC_Box cube,GFC_Vector3D position,GFC_Vector3D rotation,GFC_Vector3D scale,GFC_Color color)

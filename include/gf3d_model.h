@@ -304,4 +304,13 @@ void gf3d_model_mat_rotate(ModelMat *mat,GFC_Vector3D rotation);
  */
 Model *gf3d_gltf_parse_model(const char *filename);
 
+/**
+ * @brief gets data from gltf files [DO NOT PARSE DATA!]
+ * @param filename - The gltf file
+ * @param accessorName - The name of the section (Ex: "nodes", "materials", "meshes")
+ * @param dataName - The name of the data/data list (Ex: "nodes->extras->Name", "materials->pbrMetallicRoughness->roughnessFactor")
+ * @return NULL on error, or the data it obtained
+ */
+void *gf3d_gltf_parse_data(const char* filename, char* accessorName, char* dataName);
+
 #endif

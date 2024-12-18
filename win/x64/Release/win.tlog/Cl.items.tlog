@@ -26,6 +26,7 @@ C:\Users\migue\.ssh\gf3d\gfc\src\gfc_types.c;C:\Users\migue\.ssh\gf3d\win\x64\Re
 C:\Users\migue\.ssh\gf3d\gfc\src\gfc_vector.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gfc_vector.obj
 C:\Users\migue\.ssh\gf3d\gfc\src\miniz.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\miniz.obj
 C:\Users\migue\.ssh\gf3d\src\animation.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\animation.obj
+C:\Users\migue\.ssh\gf3d\src\enemy.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\enemy.obj
 C:\Users\migue\.ssh\gf3d\src\entity.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\entity.obj
 C:\Users\migue\.ssh\gf3d\src\ent_obj.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\ent_obj.obj
 C:\Users\migue\.ssh\gf3d\src\floor.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\floor.obj

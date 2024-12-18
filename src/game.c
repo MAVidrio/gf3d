@@ -71,7 +71,7 @@ int main(int argc,char *argv[])
 {
     //local variables
     ObjData *square;
-    Model *sky,*dino, *cylinder;
+    Model *sky,*dino, *cylinder, *level;
     GLTF  *playerData;
     GFC_Matrix4 skyMat,dinoMat;
     Mix_Music *music;
@@ -125,6 +125,7 @@ int main(int argc,char *argv[])
     gfc_matrix4_identity(cylinder);
     music = gfc_sound_load_music("music/Persona 3 Reload - It's Going Down Now (Extended Version).mp3");
     square = gf3d_obj_load_from_file("models/primitives/MyCube/TestCube.obj");
+    level = gf3d_gltf_parse_model("models/terrain/l-one.gltf");
 
     // Player
     GFC_Vector3D playerSpawn = gfc_vector3d(0, 0, 0);
@@ -143,7 +144,9 @@ int main(int argc,char *argv[])
     // Object
     GFC_Vector3D spawn = gfc_vector3d(0, 0, 0);
    
-    Entity* cylind = obj_new("cylinder", square, spawn);
+    Entity* cylind = obj_new("cylinder", square, spawnFloor);
+    //Entity* lfloor = floor_new("Level", level, spawn, sizeFloor);
+    Entity* lfloor = floor_new_gltf("models/terrain/l-one.gltf");
 
     float offset = 45.0f;
     entity_set_radius(player, &offset);
@@ -203,19 +206,19 @@ int main(int argc,char *argv[])
                 gf3d_model_draw_sky(sky,skyMat,GFC_COLOR_WHITE);
 
                 //gf3d_model_draw();
-                
-                particle_spray_follow_point(
-                    10,
-                    30,
-                    GFC_COLOR_BLUE,
-                    GFC_COLOR_GREEN,
-                    gfc_vector3d(player->position.x + gfc_crandom(), player->position.y + gfc_crandom(), player->position.z + gfc_crandom()),
-                    &player->position,
-                    0.2,
-                    0.1,
-                    0.5,
-                    gfc_vector3d(0,0,0));
-                
+                if (player_Trigger(player) == 1) {
+                    particle_spray_follow_point(
+                        10,
+                        30,
+                        GFC_COLOR_BLUE,
+                        GFC_COLOR_GREEN,
+                        gfc_vector3d(player->position.x + gfc_crandom(), player->position.y + gfc_crandom(), player->position.z + gfc_crandom()),
+                        &player->position,
+                        0.2,
+                        0.1,
+                        0.5,
+                        gfc_vector3d(0, 0, 0));
+                }
                 entity_system_draw();
                 particle_manager_draw();
                 gf3d_draw_plane_3d(gfc_plane3d(0,0,0,0),gfc_vector3d(0,0,0), gfc_vector3d(0, 0, 0), gfc_vector3d(1, 1, 1), GFC_COLOR_WHITE);

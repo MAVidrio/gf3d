@@ -246,12 +246,14 @@ Model *gf3d_model_load_from_config(SJson *json,const char *filename)
     if (!gf3d_model.initiliazed)return NULL;
     if (!json)return NULL;
 
+    // Get and check if it's a gltf
     modelFile = sj_get_string_value(sj_object_get_value(json,"gltf"));
     if (modelFile)
     {
         model = gf3d_gltf_parse_model(modelFile);
         if (!model)return NULL;
-    }    
+    }
+    // Get it as an obj or obj list, otherwise
     else
     {
         model = gf3d_model_new();

@@ -60,13 +60,25 @@ int ground = onGround;
 Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition, Skeleton3D* armature)
 {
 	Entity *self;
-
 	self = entity_new();
 	if (!self)
 	{
 		slog("Failed to spawn player entity.");
 		return NULL;
 	}
+
+	playerData* pData;
+	pData = gfc_allocate_array(sizeof(playerData), 1);
+	if (!pData) {
+		slog("Failed to allocate player data");
+		return NULL;
+	}
+	memset(pData, 0, sizeof(playerData));
+
+	pData->health = 3;
+	pData->super_mode = 0;
+
+	self->data = pData;
 
 	gfc_line_sprintf(self->tag, "Player");
 	gfc_line_sprintf(self->name, name);
@@ -155,6 +167,8 @@ void player_think(Entity* self) {
 	float movementY = 0.0f;
 	GFC_Vector3D camForward;
 	GFC_Vector3D camRight;
+	playerData* pData;
+	pData = self->data;
 
 	keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
 
@@ -186,6 +200,11 @@ void player_think(Entity* self) {
 	else if (keys[SDL_SCANCODE_A]) { movementX += 1.0f; }	// Press A
 	else { movementX = 0.0f; }
 
+	
+	// Super mode
+	if (keys[SDL_SCANCODE_E] && pData->super_mode == 0) pData->super_mode = 1;
+	else if (keys[SDL_SCANCODE_E] && pData->super_mode == 1) pData->super_mode = 0;
+
 	gfc_vector3d_scale(finalY, camForward, movementY);
 	gfc_vector3d_scale(finalX, camRight, movementX);
 
@@ -202,6 +221,8 @@ void player_think(Entity* self) {
 
 	// Z limit
 	if (self->velocity.z < -5.0f) self->velocity.z += 0.3f;
+
+	self->data = pData;
 
 	// Update shader uniforms with UBO
 	//time += game_frame_delay();
@@ -294,8 +315,18 @@ int player_draw(Entity* self)
 	return;
 }
 
+Uint8 player_Trigger(Entity* self) {
+	playerData* pData;
+	pData = self->data;
+	return pData->super_mode;
+}
+
 void player_free(Entity *self)
 {
 	if (!self)return;
+	playerData* pData = self->data;
+	if (!pData) return;
+	free(pData);
+	memset(self, 0, sizeof(Entity));
 }
 

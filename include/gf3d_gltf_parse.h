@@ -3,6 +3,8 @@
 
 #include "simple_json.h"
 #include "gfc_types.h"
+#include "gfc_list.h"
+#include "gfc_text.h"
 
 typedef enum
 {

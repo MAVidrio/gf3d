@@ -5,6 +5,9 @@
 #include "gf3d_model.h"
 #include "gfc_text.h"
 #include "gfc_vector.h"
+#include "gf3d_camera.h"
+#include "gf3d_obj_load.h"
+#include "skeleton.h"
 
 /**
 * @purpose Make and manage entity
@@ -22,9 +25,10 @@ typedef struct Entity_S
 	GFC_Vector3D		direction;	/**Where am I faceing in x and y*/
 	Model* model;					/**My graphics*/
 	int*				cameraMode;	/**What mode is the camera in?*/
+	Camera*				camera;		/**My camera object*/
 	float*				radius;		/**Offset for my camera*/
-	GFC_Primitive		collisionX;/**What is the shape of my body collision?*/
-	//GFC_Box				collision;	/**What is the shape of my body collision?*/
+	GFC_Primitive		collisionX;	/**What is the shape of my body collision?*/
+	Skeleton3D*			armature;	/**My skeleton for aniimations*/
 
 	// behavior
 	void (*think)(struct Entity_S* self);		/**Function to call to make decisions*/
@@ -88,9 +92,16 @@ void entity_draw(Entity *self);
 
 /*
 * @brief Use to set camera's current mode
-* @param camera's current mode
+* @param cameraMode - Camera's current mode
+* @param camera - The camera object
 */
-void entity_set_camera(Entity* self, int camera);
+void entity_set_camera(Entity* self, int cameraMode, Camera* camera);
+
+/*
+* @brief Use to update the camera for the player
+* @param camera - Camera object
+*/
+void entity_update_camera(Entity* self, Camera* camera);
 
 /*
 * @brief Use to get camera mode

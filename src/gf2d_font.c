@@ -631,7 +631,7 @@ void gf2d_font_draw_text_wrap(
     
 }
 
-void gf2d_draw_menu() {
+/*void gf2d_draw_menu() {
     //Background
     gf2d_draw_rect_filled(gfc_rect(0,0, 1600, 800), gfc_color8(90, 90, 90, 200));
 
@@ -654,6 +654,6 @@ void gf2d_draw_menu() {
     //Exit game
     gf2d_draw_rect_filled(gfc_rect(352, 375, 200, 50), gfc_color8(200, 0, 0, 255));
     gf2d_font_draw_text_wrap_tag("Exit", FT_Large, GFC_COLOR_WHITE, gfc_rect(350, 375, 200, 200));
-}
+}*/
 
 /*eol@eof*/

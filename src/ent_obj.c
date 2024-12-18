@@ -10,7 +10,7 @@ int	 obj_draw(Entity* self);
 void obj_free(Entity* self);
 void obj_collider(Entity* self, Entity* other);
 
-Entity* obj_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
+Entity* obj_new(GFC_TextLine name, ObjData* obj, GFC_Vector3D spawnPosition)
 {
 	Entity* self;
 
@@ -27,17 +27,19 @@ Entity* obj_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
 	self->position = spawnPosition;
 	self->rotation = gfc_vector3d(0, 0, 0);
 	self->scale = gfc_vector3d(2, 2, 2);
-	self->model = model;
+	//self->model = model;
 	self->velocity = gfc_vector3d(0, 0, 0);
 	self->direction = gfc_vector3d(0, 0, 0);
 	self->radius = 0;
-
+	
 	float xScale = 4.0f;
 	float yScale = 4.0f;
 	float zScale = 4.0f;
 
-	self->collisionX = gfc_primitive_offset(gfc_new_primitive(3, self->position.x, self->position.y, self->position.z, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0)), gfc_vector3d(1,-1,-1));
-
+	// _______________Make obj collision work____________________
+	
+	//self->collisionX = gfc_primitive_offset(gfc_new_primitive(3, self->position.x, self->position.y, self->position.z, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0)), gfc_vector3d(1,-1,-1));
+	//self->collisionX = gfc_box_from_obj(obj->bounds);
 
 	self->think = obj_think;
 	self->update = obj_update;

@@ -25,12 +25,16 @@ C:\Users\migue\.ssh\gf3d\gfc\src\gfc_text.c;C:\Users\migue\.ssh\gf3d\win\x64\Rel
 C:\Users\migue\.ssh\gf3d\gfc\src\gfc_types.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gfc_types.obj
 C:\Users\migue\.ssh\gf3d\gfc\src\gfc_vector.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gfc_vector.obj
 C:\Users\migue\.ssh\gf3d\gfc\src\miniz.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\miniz.obj
+C:\Users\migue\.ssh\gf3d\src\animation.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\animation.obj
+C:\Users\migue\.ssh\gf3d\src\enemy.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\enemy.obj
 C:\Users\migue\.ssh\gf3d\src\entity.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\entity.obj
 C:\Users\migue\.ssh\gf3d\src\ent_obj.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\ent_obj.obj
+C:\Users\migue\.ssh\gf3d\src\floor.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\floor.obj
 C:\Users\migue\.ssh\gf3d\src\game.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\game.obj
 C:\Users\migue\.ssh\gf3d\src\gf2d_actor.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_actor.obj
 C:\Users\migue\.ssh\gf3d\src\gf2d_draw.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_draw.obj
 C:\Users\migue\.ssh\gf3d\src\gf2d_font.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_font.obj
+C:\Users\migue\.ssh\gf3d\src\gf2d_menu.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_menu.obj
 C:\Users\migue\.ssh\gf3d\src\gf2d_mouse.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_mouse.obj
 C:\Users\migue\.ssh\gf3d\src\gf2d_sprite.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf2d_sprite.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_buffers.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_buffers.obj
@@ -46,6 +50,7 @@ C:\Users\migue\.ssh\gf3d\src\gf3d_materials.c;C:\Users\migue\.ssh\gf3d\win\x64\R
 C:\Users\migue\.ssh\gf3d\src\gf3d_mesh.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_mesh.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_model.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_model.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_obj_load.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_obj_load.obj
+C:\Users\migue\.ssh\gf3d\src\gf3d_particle.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_particle.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_pipeline.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_pipeline.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_shaders.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_shaders.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_swapchain.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_swapchain.obj
@@ -55,3 +60,4 @@ C:\Users\migue\.ssh\gf3d\src\gf3d_validation.c;C:\Users\migue\.ssh\gf3d\win\x64\
 C:\Users\migue\.ssh\gf3d\src\gf3d_vgraphics.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_vgraphics.obj
 C:\Users\migue\.ssh\gf3d\src\gf3d_vqueues.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\gf3d_vqueues.obj
 C:\Users\migue\.ssh\gf3d\src\player.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\player.obj
+C:\Users\migue\.ssh\gf3d\src\skeleton.c;C:\Users\migue\.ssh\gf3d\win\x64\Release\skeleton.obj

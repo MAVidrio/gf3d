@@ -408,6 +408,55 @@ Model *gf3d_gltf_parse_model(const char *filename)
     return model;
 }
 
+GFC_TextLine *gf3d_gltf_get_data(SJson* data1, GLTF *gltf, char* dataName) {
+    int i, c;
+    GFC_TextLine result;
+    SJson* data, * moreData;
+
+    if ((!data1) || (!gltf))return NULL;
+
+    data = sj_object_get_value(data1, dataName);
+    c = sj_array_get_count(data);
+    if (c <= 1) {
+        if (sj_object_get_value_as_string(data, dataName, &result)) {
+            return result;
+        }
+    }
+    return NULL;
+}
+
+void* gf3d_gltf_parse_data(const char* filename, char* accessorName, char* dataName) {
+    int i, c;
+    auto result;
+    GLTF* gltf;
+    SJson* data, * moreData, *data2;
+
+    if (!filename)return NULL;
+
+    //from here start rewriting everything around using the GLTF wrapper
+    gltf = gf3d_gltf_load(filename);
+    if (!gltf)
+    {
+        slog("GLTF file '%s' Failed to load", filename);
+        return NULL;
+    }
+
+    data = sj_object_get_value(gltf->json, accessorName);
+    c = sj_array_get_count(data);
+    for (i = 0; i < c; i++) {
+        moreData = sj_array_get_nth(data, i);
+        if (!moreData)continue;
+        result = gf3d_gltf_get_data(moreData,gltf,dataName);
+        if (result != NULL) {
+            gf3d_gltf_free(gltf);
+            return result;
+        }
+    }
+
+    gf3d_gltf_free(gltf);
+    return NULL;
+}
+
 //SOURCE: https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
 //ACCESSED: 15/9/2022
 

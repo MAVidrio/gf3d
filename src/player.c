@@ -1,8 +1,14 @@
 #include "simple_logger.h"
 
 #include "gfc_matrix.h"
+#include "gfc_input.h"
 
 #include "player.h"
+
+
+
+static float elapsedTime = 0.0f;
+extern float deltaTime;
 
 void player_think(Entity *self);
 void player_update(Entity *self);
@@ -30,17 +36,49 @@ int typeCollision[] = { 0,0,0,0,0 };
 * @param [4]-Floor
 */
 Entity entCollision[] = { 0,0,0,0,0 };
+float gravity = 1.0f;
 
-Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
+// Used for checking if the player is on the ground or in the air
+enum groundState {
+	onGround,
+	inAir
+};
+
+// Used for universal states. Idle, attacking, moving, ex.
+enum playerState {
+	idle,
+	attack,
+	moving,
+
+};
+
+
+
+int state = idle;
+int ground = onGround;
+
+Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition, Skeleton3D* armature)
 {
 	Entity *self;
-
 	self = entity_new();
 	if (!self)
 	{
 		slog("Failed to spawn player entity.");
 		return NULL;
 	}
+
+	playerData* pData;
+	pData = gfc_allocate_array(sizeof(playerData), 1);
+	if (!pData) {
+		slog("Failed to allocate player data");
+		return NULL;
+	}
+	memset(pData, 0, sizeof(playerData));
+
+	pData->health = 3;
+	pData->super_mode = 0;
+
+	self->data = pData;
 
 	gfc_line_sprintf(self->tag, "Player");
 	gfc_line_sprintf(self->name, name);
@@ -51,22 +89,30 @@ Entity* player_new(GFC_TextLine name, Model* model, GFC_Vector3D spawnPosition)
 	self->velocity = gfc_vector3d(0, 0, 0);
 	self->direction = gfc_vector3d(0, 0, 0);
 	self->cameraMode = 0;
+	self->camera;
 	self->radius = 0;
 	//self->collision = gfc_box(self->position.x, self->position.y, self->position.z, 4, 4, 4);
 
 	float xScale = 6.0f;
 	float yScale = 6.0f;
-	float zScale = 11.0f;
+	float zScale = 12.0f;
 
-	self->collisionX = gfc_new_primitive(3, self->position.x-(xScale/2.0f), self->position.y-(yScale/2.0f), self->position.z-(zScale/2)-1, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
-
+	//self->collisionX = gfc_new_primitive(3, self->position.x-(xScale/2.0f), self->position.y-(yScale/2.0f), self->position.z-(zScale/2)-1, xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
+	self->collisionX = gfc_new_primitive(3, self->position.x - (xScale / 2.0f), self->position.y - (yScale / 2.0f), self->position.z - (zScale / 2), xScale, yScale, zScale, 0.0f, gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0), gfc_vector3d(0, 0, 0));
 	self->think = player_think;
 	self->update = player_update;
 	self->draw = player_draw;
 	self->free = player_free;
 	self->touch = player_collider;
 
+	self->armature = armature;
+	if (!self->armature) {
+		slog("Error: Player armature is NULL.");
+		return NULL;
+	}
+
 	slog("Player succefully spawned.");
+	//slog("%f/%f/%f", self->collisionX.s.b.xC, self->collisionX.s.b.yC, self->collisionX.s.b.zC);
 	return self;
 }
 
@@ -85,71 +131,142 @@ void player_collider(Entity* self, Entity* other, GFC_Vector3D collision) {
 
 	GFC_Vector3D dir = self->direction;
 	if (strcmp(other->tag, "Object") == 0) {
-		slog("Touching object");
+		//slog("Touching object");
 		collide = true;
 		typeCollision[0] = 1;
 		entCollision[0] = *other;
 	}	
+	if (strcmp(other->tag, "Floor") == 0) {
+		//slog("Touching floor");
+		collide = true;
+		typeCollision[4] = 1;
+		//slog("Collision: %f/%f/%f", collision.x, collision.y, collision.z);
+		//entCollision[4] = *other;
+	}
 }
 
 void player_to_object(Entity* self, Entity* object) {
 	//slog("Touching Object");
 }
 
-void player_think(Entity *self)
-{
+void player_think(Entity* self) {
+
 	if (!self)return;
 
-	GFC_Vector3D dir = self->direction;
+	//static float time = 0;
+	//Uint32 frame = (Uint32)(time * ANIMATION_FPS) % TOTAL_FRAMES;
+	//SkeletonUBO ubo = gf3d_armature_get_ubo(self->armature, frame);
+
+	float fallMultiplier = 0.5f;
+	float jumpMultiplier = 15.0f;
 	const Uint8* keys;
+	GFC_Vector3D velocityDir = gfc_vector3d(0,0,0);
+	GFC_Vector3D finalY;
+	GFC_Vector3D finalX;
+	float movementX = 0.0f;
+	float movementY = 0.0f;
+	GFC_Vector3D camForward;
+	GFC_Vector3D camRight;
+	playerData* pData;
+	pData = self->data;
 
 	keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
-	
+
+	// Floor Collision
+	if (typeCollision[4] == 1) {
+		ground = onGround;
+		self->velocity.z = 0;
+		typeCollision[4] = 0;
+	}
+	// Gravity
+	else {
+		self->velocity.z -= 0.1;
+		ground = inAir;
+	}
+
+	// Jump
+	if (keys[SDL_SCANCODE_SPACE] && ground == onGround) self->velocity.z += 2.0f;
+
 	// Player Control mode
-	if (self->cameraMode == 0) {
-		if (keys[SDL_SCANCODE_W]) dir.y = -1; 	// Press W
-		if (keys[SDL_SCANCODE_S]){ dir.y = 1;  }	// Press S
-		if (keys[SDL_SCANCODE_D]){ dir.x = -1;  }	// Press D
-		if (keys[SDL_SCANCODE_A]){ dir.x = 1; }	// Press A
-	}
-	// Target Lock mode
-	else if (self->cameraMode == 4) 
-	{
-		if (keys[SDL_SCANCODE_W]) dir.y = -1;			// Press W
-		if (keys[SDL_SCANCODE_S]) dir.y = 1;				// Press S
-		if (keys[SDL_SCANCODE_D]) dir.x = -1;			// Press D
-		if (keys[SDL_SCANCODE_A]) dir.x = 1;				// Press A
-	}
-	else
-	{
-		if (keys[SDL_SCANCODE_W]) dir.y = -1;			// Press W
-		if (keys[SDL_SCANCODE_S]) dir.y = 1;				// Press S
-		if (keys[SDL_SCANCODE_D]) dir.x = -1;			// Press D
-		if (keys[SDL_SCANCODE_A]) dir.x = 1;
+	gf3d_camera_get_view_vectors(&camForward, &camRight, NULL);
 
-		
-	}
+	camForward.z = 0;
+	camRight.z = 0;
+
+	if (keys[SDL_SCANCODE_W]) { movementY += -1.0f; }	// Press W
+	else if (keys[SDL_SCANCODE_S]) { movementY += 1.0f; }	// Press S
+	else { movementY = 0.0f; }
+	if (keys[SDL_SCANCODE_D]) { movementX += -1.0f; }	// Press D
+	else if (keys[SDL_SCANCODE_A]) { movementX += 1.0f; }	// Press A
+	else { movementX = 0.0f; }
+
 	
-	if (keys[SDL_SCANCODE_SPACE]) dir.z += 1;
+	// Super mode
+	if (keys[SDL_SCANCODE_E] && pData->super_mode == 0) pData->super_mode = 1;
+	else if (keys[SDL_SCANCODE_E] && pData->super_mode == 1) pData->super_mode = 0;
 
-	// Add collision phycics here
-	if (collide) {
-		// Objects
-		if (typeCollision[0] == 1) {
-			
-			typeCollision[0] = 0;
-			
-		}
-		collide = false;
-	}
+	gfc_vector3d_scale(finalY, camForward, movementY);
+	gfc_vector3d_scale(finalX, camRight, movementX);
 
-	gfc_vector3d_normalize(&dir);
-	gfc_vector3d_scale(self->velocity,dir,0.1);
+	self->velocity.x = -finalY.x + -finalX.x;
+	self->velocity.y = -finalY.y + -finalX.y;
+
+	// X limit
+	if (self->velocity.x > 2.0f) self->velocity.x -= 0.3f;
+	else if (self->velocity.x < -2.0f) self->velocity.x += 0.3f;
+
+	// Y limit
+	if (self->velocity.y > 2.0f) self->velocity.y -= 0.3f;
+	else if (self->velocity.y < -2.0f) self->velocity.y += 0.3f;
+
+	// Z limit
+	if (self->velocity.z < -5.0f) self->velocity.z += 0.3f;
+
+	self->data = pData;
+
+	// Update shader uniforms with UBO
+	//time += game_frame_delay();
+
+	// DEBUG: check velocity 
+	//if (gfc_input_command_pressed("cancel")) slog("Velocity: %f/%f/%f", self->velocity.x, self->velocity.y, self->velocity.z);
 }
 
 void player_update(Entity *self)
 {
 	if (!self)return;
+
+
+
+	/*// Update elasped time
+	elapsedTime += deltaTime;
+
+	// Animation
+	float animationSpeed = 1.0f;
+	Uint32 totalFrames = self->armature->maxFrames;
+	Uint32 frame = (Uint32)(elapsedTime * animationSpeed) % totalFrames;
+
+	if (deltaTime <= 0) {
+		slog("Error: deltaTime is zero or negative.");
+		return;
+	}
+	if (totalFrames == 0) {
+		slog("Error: Total animation frames is zero.");
+		return;
+	}
+	
+	slog("deltaTime: %f, animationSpeed: %f, totalFrames: %d", deltaTime, animationSpeed, totalFrames);*/
+
+
+	// Get pose matrices for the current frame
+	//GFC_Matrix4* boneMatrices = gf3d_armature_get_pose_matrices(self->armature, frame, NULL);
+
+	// Pass matrices to shaders (depends on your rendering pipeline)
+	//if (boneMatrices) {
+		// Example: Bind matrices to shader's uniform buffer
+		// update_shader_uniforms(boneMatrices, totalFrames);
+	//}
+
+	//SkeletonUBO ubo = gf3d_armature_get_ubo(self->armature, frame);
 
 	gfc_vector3d_add(self->position, self->position, self->velocity);
 	gfc_vector3d_add(self->collisionX.s.b, self->collisionX.s.b, self->velocity);
@@ -198,8 +315,18 @@ int player_draw(Entity* self)
 	return;
 }
 
+Uint8 player_Trigger(Entity* self) {
+	playerData* pData;
+	pData = self->data;
+	return pData->super_mode;
+}
+
 void player_free(Entity *self)
 {
 	if (!self)return;
+	playerData* pData = self->data;
+	if (!pData) return;
+	free(pData);
+	memset(self, 0, sizeof(Entity));
 }
 
